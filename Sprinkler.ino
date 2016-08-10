@@ -27,7 +27,8 @@ unsigned long timerBacklight = 0;
 bool stateBacklight = true;
 int operationMode = 0; // Mode of operation, 0 = Auto, 1 = Off, 2 = Manual
 int nbrEvents = 0; // Number of programed events
-uint8_t arrow[8] = {0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4};
+uint8_t arrowUp[8] =   {0x4, 0xe, 0x1f, 0x0, 0x0, 0x0, 0x0};
+uint8_t arrowDown[8] = {0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4};
 AlarmId eventId[dtNBR_ALARMS]; // ID's of the programed events
 
 LiquidCrystal_I2C lcd(0x3f, 16, 2); // Initialization of the LCD Screen
@@ -200,35 +201,35 @@ void displayStatus() {
     lcd.setCursor(0, 1);
     if (operationMode == 0) {
       // lcd.setCursor(0, 1);
-      lcd.write(0);
+      lcd.write(1);
       lcd.print("  ");
     } else if (operationMode == 1) {
       // lcd.setCursor(1, 1);
       lcd.print(' ');
-      lcd.write(0);
+      lcd.write(1);
       lcd.print(' ');
     } else if (operationMode == 2) {
       // lcd.setCursor(2, 1);
       lcd.print("  ");
-      lcd.write(0);
+      lcd.write(1);
     }
     for(int i = 1; i <= ZONES; i++) {
       lcd.setCursor(i + 2, 1);
       if (zoneState[i - 1]) {
-        lcd.write(0);
+        lcd.write(1);
       } else {
         lcd.print(' ');
       }
     }
     lcd.setCursor(ZONES + 3, 1);
     if (rain()) {
-      lcd.write(0);
+      lcd.write(1);
     } else {
       lcd.print(' ');
     }
     lcd.setCursor(ZONES + 4, 1);
     if (tank()) {
-      lcd.write(0);
+      lcd.write(1);
     } else {
       lcd.print(' ');
     }
@@ -330,7 +331,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(TANKS), nowater, RISING); // Create an interrupt for the water tank sensor
   lcd.init(); // Initialize the LCD screen
   lcd.backlight(); // Turn on the LCD backlight
-  lcd.createChar(0, arrow);
+  lcd.createChar(0, arrowUp);
+  lcd.createChar(1, arrowDown);
   alarmas(); // Read the alarms
 }
 
