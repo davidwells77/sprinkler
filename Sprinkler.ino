@@ -12,19 +12,19 @@
 #define BTNUP    4
 #define BTNDOWN  5
 #define BTNPROG  6
+#define DEBOUNCE 50
 #define BACKLIGHT 30000 // For how long the backlight is going to remain on
 #define RAINS 2         // Pin hooked up to the rain sensor
 #define TANKS 3         // Pin hooked up to the water tank sensor
 #define ZONES 4         // Number of zones to water
 #define ZONEC 0         // Which of the zones is a common zone (water pump, solenoid transformer)
 #define KEYPIN A3       // Pin hooked up to the keypad
-#define DEBOUNCE 250
 
 volatile int zonePins[ZONES] = {7, 8, 9, 10}; // Definition of the pins hooked up to each of the zones
 volatile bool zoneState[ZONES] = {false, false, false, false}; // State of the zones
 unsigned long timerBacklight = 0;
 bool stateBacklight = true;
-int modeOperation = 0; // Mode of operation, 0 = Auto, 1 = Off, 2 = Manual
+int operationMode = 0; // Mode of operation, 0 = Auto, 1 = Off, 2 = Manual
 int nbrEvents = 0; // Number of programed events
 uint8_t arrow[8] = {0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4};
 AlarmId eventId[dtNBR_ALARMS]; // ID's of the programed events
@@ -78,8 +78,10 @@ bool tank() {
 void onZone(int zone) {
 
   // Turn on a zone and update the status of the zone
-  digitalWrite(zonePins[zone], HIGH);
-  zoneState[zone] = true;
+  if (!(rain()) && !(tank())) {
+    digitalWrite(zonePins[zone], HIGH);
+    zoneState[zone] = true;
+  }
 }
 
 void offZone(int zone) {
@@ -97,7 +99,7 @@ void onZone1() {
    * and there is water in the water tank and the operation mode
    * is Auto
    */
-  if (!(rain()) && !(tank()) && modeOperation == 0) {
+  if (operationMode == 0) {
     onZone(1);
     onZone(ZONEC);
   }
@@ -109,7 +111,7 @@ void onZone2() {
    * and there is water in the water tank and the operation mode
    * is Auto
    */
-  if (!(rain()) && !(tank()) && modeOperation == 0) {
+  if (operationMode == 0) {
     onZone(2);
     onZone(ZONEC);
   }
@@ -121,7 +123,7 @@ void onZone3() {
    * and there is water in the water tank and the operation mode
    * is Auto
    */
-  if (!(rain()) && !(tank()) && modeOperation == 0) {
+  if (operationMode == 0) {
     onZone(3);
     onZone(ZONEC);
   }
@@ -172,7 +174,7 @@ void displayStatus() {
   unsigned long currentMillis = millis();
   static unsigned long timer = 0;
   static bool stateBlinker = false;
-  char *fecha;
+  char fecha[17];
 
   if (RTC.read(tm)) {
     if (stateBacklight && currentMillis - timerBacklight >= BACKLIGHT) {
@@ -191,16 +193,16 @@ void displayStatus() {
       lcd.setCursor(0, 0);
       lcd.print(fecha); // Print the date and time
       lcd.setCursor(0, 1);
-      if (modeOperation == 0) {
+      if (operationMode == 0) {
         // lcd.setCursor(0, 1);
         lcd.write(0);
         lcd.print("  ");
-      } else if (modeOperation == 1) {
+      } else if (operationMode == 1) {
         // lcd.setCursor(1, 1);
         lcd.print(' ');
         lcd.write(0);
         lcd.print(' ');
-      } else if (modeOperation == 2) {
+      } else if (operationMode == 2) {
         // lcd.setCursor(2, 1);
         lcd.print("  ");
         lcd.write(0);
@@ -243,11 +245,11 @@ int keyPress() {
   static int oldKeyPressed = 0;
   unsigned long currentMillis = millis();
   static unsigned long timer = 0;
-  char *texto;
-  
+  //char texto[255];
+
   keyPressed = map(analogRead(KEYPIN), 0, 1024, 0, 10);
-  sprintf(texto, "%lu %lu %lu %d %d", currentMillis, timer, currentMillis - timer, keyPressed, oldKeyPressed);
-  Serial.println(texto);
+  // sprintf(texto, "%lu %lu %lu %d %d", currentMillis, timer, currentMillis - timer, keyPressed, oldKeyPressed);
+  // Serial.println(texto);
   if(keyPressed != 0) {
     timerBacklight = currentMillis;
     if(!(stateBacklight)) {
@@ -286,6 +288,31 @@ int keyPress() {
   return BTNNONE;
 }
 
+void manualOperation() {
+
+  int keyPressed;
+  int runZone = 1;
+
+  onZone(runZone);
+  onZone(ZONEC);
+  while(operationMode == 2) {
+    displayStatus();
+    keyPressed = keyPress();
+    if(keyPressed == BTNSET) {
+      offZone(ZONEC);
+      offZone(runZone);
+      runZone++;
+      if(runZone == ZONES) {
+        operationMode++;
+        if(operationMode == 3) operationMode = 0;
+      } else {
+        onZone(runZone);
+        onZone(ZONEC);
+      }
+    }
+  }
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -307,10 +334,13 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int keyPressed;
- 
+  
   displayStatus();
-  //keyPressed = keyPress();
-  Serial.println(keyPress());
+  keyPressed = keyPress();
+  if(keyPressed == BTNSET) {
+    operationMode++;
+    if(operationMode == 3) operationMode = 0;
+  }
+  if(operationMode == 2) manualOperation();
   Alarm.delay(0);
 }
-
