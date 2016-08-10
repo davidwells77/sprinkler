@@ -5,13 +5,6 @@
 #include <LiquidCrystal_I2C.h>
 #include <TimeAlarms.h>
 
-#define BTNNONE  0
-#define BTNSET   1
-#define BTNLEFT  2
-#define BTNRIGHT 3
-#define BTNUP    4
-#define BTNDOWN  5
-#define BTNPROG  6
 #define DEBOUNCE 50
 #define BACKLIGHT 30000 // For how long the backlight is going to remain on
 #define RAINS 2         // Pin hooked up to the rain sensor
@@ -19,6 +12,14 @@
 #define ZONES 4         // Number of zones to water
 #define ZONEC 0         // Which of the zones is a common zone (water pump, solenoid transformer)
 #define KEYPIN A3       // Pin hooked up to the keypad
+
+const int btnNone  0;
+const int btnSet   1;
+const int btnLeft  2;
+const int btnRight 3;
+const int btnUp    4;
+const int btnDown  5;
+const int btnProg  6;
 
 volatile int zonePins[ZONES] = {7, 8, 9, 10}; // Definition of the pins hooked up to each of the zones
 volatile bool zoneState[ZONES] = {false, false, false, false}; // State of the zones
@@ -266,29 +267,29 @@ int keyPress() {
   }
   if(keyPressed == 0 && oldKeyPressed == 2 && currentMillis - timer >= DEBOUNCE) {
     oldKeyPressed = 0;
-    return BTNLEFT;
+    return btnLeft;
   } else if(keyPressed == 0 && oldKeyPressed == 5 && currentMillis - timer >= 4000) {
     oldKeyPressed = 0;
-    return BTNPROG;
+    return btnProg;
   } else if(keyPressed == 0 && oldKeyPressed == 5 && currentMillis - timer >= DEBOUNCE) {
     oldKeyPressed = 0;
-    return BTNSET;
+    return btnSet;
   } else if(keyPressed == 0 && oldKeyPressed == 6 && currentMillis - timer >= DEBOUNCE) {
     oldKeyPressed = 0;
-    return BTNDOWN;
+    return btnDown;
   } else if(keyPressed == 0 && oldKeyPressed == 8 && currentMillis - timer >= DEBOUNCE) {
     oldKeyPressed = 0;
-    return BTNRIGHT;
+    return btnRight;
   } else if(keyPressed == 0 && oldKeyPressed == 9 && currentMillis - timer >= DEBOUNCE) {
     oldKeyPressed = 0;
-    return BTNUP;
+    return btnUp;
   } else if(keyPressed == 0 && oldKeyPressed != 0 && currentMillis - timer < DEBOUNCE) {
     oldKeyPressed = 0;
-    return BTNNONE;
+    return btnNone;
   } else {
-    return BTNNONE;
+    return btnNone;
   }
-  return BTNNONE;
+  return btnNone;
 }
 
 void manualOperation() {
@@ -301,7 +302,7 @@ void manualOperation() {
   while(operationMode == 2) {
     displayStatus();
     keyPressed = keyPress();
-    if(keyPressed == BTNSET) {
+    if(keyPressed == btnSet) {
       offZone(ZONEC);
       offZone(runZone);
       runZone++;
@@ -340,7 +341,7 @@ void loop() {
   
   displayStatus();
   keyPressed = keyPress();
-  if(keyPressed == BTNSET) {
+  if(keyPressed == btnSet) {
     operationMode++;
     if(operationMode == 3) operationMode = 0;
   }
