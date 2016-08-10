@@ -175,9 +175,8 @@ void displayStatus() {
   unsigned long currentMillis = millis();
   static unsigned long timer = 0;
   static bool stateBlinker = false;
-  static bool firstRun = true;
-  static int oldOperationMode = 0;
-  static bool oldZoneState[ZONES];
+  static int oldOperationMode = -1;
+  static bool oldZoneState[ZONES] = {true, true, true, true};
   char fecha[17];
 
   if (RTC.read(tm)) {
