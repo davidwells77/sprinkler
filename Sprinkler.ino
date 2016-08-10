@@ -13,16 +13,16 @@
 #define ZONEC 0         // Which of the zones is a common zone (water pump, solenoid transformer)
 #define KEYPIN A3       // Pin hooked up to the keypad
 
-const int btnNone  0;
-const int btnSet   1;
-const int btnLeft  2;
-const int btnRight 3;
-const int btnUp    4;
-const int btnDown  5;
-const int btnProg  6;
+const int btnNone =  0;
+const int btnSet =   1;
+const int btnLeft =  2;
+const int btnRight = 3;
+const int btnUp =    4;
+const int btnDown =  5;
+const int btnProg =  6;
 
 volatile int zonePins[ZONES] = {7, 8, 9, 10}; // Definition of the pins hooked up to each of the zones
-volatile bool zoneState[ZONES] = {false, false, false, false}; // State of the zones
+volatile bool zoneState[ZONES]; // State of the zones
 unsigned long timerBacklight = 0;
 bool stateBacklight = true;
 int operationMode = 0; // Mode of operation, 0 = Auto, 1 = Off, 2 = Manual
@@ -177,9 +177,17 @@ void displayStatus() {
   static unsigned long timer = 0;
   static bool stateBlinker = false;
   static int oldOperationMode = -1;
-  static bool oldZoneState[ZONES] = {true, true, true, true};
+  static bool oldZoneState[ZONES];
   char fecha[17];
 
+  if(oldOperationMode == -1) {
+    for(int i = 1; i <= ZONES; i++) {
+      oldZoneState[i - 1] = false;
+      lcd.setCursor(0, 1);
+      lcd.write(1);
+      oldOperationMode = 0;
+    }
+  }
   if (RTC.read(tm)) {
     if (stateBacklight && currentMillis - timerBacklight >= BACKLIGHT) {
       stateBacklight = !stateBacklight;
@@ -198,20 +206,23 @@ void displayStatus() {
       lcd.print(fecha); // Print the date and time
       timer = currentMillis;
     }
-    lcd.setCursor(0, 1);
-    if (operationMode == 0) {
-      // lcd.setCursor(0, 1);
-      lcd.write(1);
-      lcd.print("  ");
-    } else if (operationMode == 1) {
-      // lcd.setCursor(1, 1);
-      lcd.print(' ');
-      lcd.write(1);
-      lcd.print(' ');
-    } else if (operationMode == 2) {
-      // lcd.setCursor(2, 1);
-      lcd.print("  ");
-      lcd.write(1);
+    if(oldOperationMode != operationMode) {
+      lcd.setCursor(0, 1);
+      if (operationMode == 0) {
+        // lcd.setCursor(0, 1);
+        lcd.write(1);
+        lcd.print("  ");
+      } else if (operationMode == 1) {
+        // lcd.setCursor(1, 1);
+        lcd.print(' ');
+        lcd.write(1);
+        lcd.print(' ');
+      } else if (operationMode == 2) {
+        // lcd.setCursor(2, 1);
+        lcd.print("  ");
+        lcd.write(1);
+      }
+      oldOperationMode = operationMode;
     }
     for(int i = 1; i <= ZONES; i++) {
       lcd.setCursor(i + 2, 1);
@@ -325,6 +336,8 @@ void setup() {
   pinMode(TANKS, INPUT_PULLUP); // Configure the water tank sensor
   for(int i = 1; i <= ZONES; i++) {
     pinMode(zonePins[i - 1], OUTPUT); // Configure the zones
+    digitalWrite(zonePins[i - 1], LOW);
+    zoneState[i - 1] = false;
   }
   pinMode(LED_BUILTIN, OUTPUT); // Configure the builtin led
   attachInterrupt(digitalPinToInterrupt(RAINS), raining, RISING); // Create an interrupt for the rain sensor
@@ -349,3 +362,4 @@ void loop() {
   if(operationMode == 2) manualOperation();
   Alarm.delay(0);
 }
+
