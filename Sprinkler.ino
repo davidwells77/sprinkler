@@ -174,6 +174,9 @@ void displayStatus() {
   unsigned long currentMillis = millis();
   static unsigned long timer = 0;
   static bool stateBlinker = false;
+  static bool firstRun = true;
+  static int oldOperationMode = 0;
+  static bool oldZoneState[ZONES];
   char fecha[17];
 
   if (RTC.read(tm)) {
@@ -192,42 +195,42 @@ void displayStatus() {
       }
       lcd.setCursor(0, 0);
       lcd.print(fecha); // Print the date and time
-      lcd.setCursor(0, 1);
-      if (operationMode == 0) {
-        // lcd.setCursor(0, 1);
-        lcd.write(0);
-        lcd.print("  ");
-      } else if (operationMode == 1) {
-        // lcd.setCursor(1, 1);
-        lcd.print(' ');
-        lcd.write(0);
-        lcd.print(' ');
-      } else if (operationMode == 2) {
-        // lcd.setCursor(2, 1);
-        lcd.print("  ");
-        lcd.write(0);
-      }
-      for(int i = 1; i <= ZONES; i++) {
-        lcd.setCursor(i + 2, 1);
-        if (zoneState[i - 1]) {
-          lcd.write(0);
-        } else {
-          lcd.print(' ');
-        }
-      }
-      lcd.setCursor(ZONES + 3, 1);
-      if (rain()) {
-        lcd.write(0);
-      } else {
-        lcd.print(' ');
-      }
-      lcd.setCursor(ZONES + 4, 1);
-      if (tank()) {
-        lcd.write(0);
-      } else {
-        lcd.print(' ');
-      }
       timer = currentMillis;
+    }
+    lcd.setCursor(0, 1);
+    if (operationMode == 0) {
+      // lcd.setCursor(0, 1);
+      lcd.write(0);
+      lcd.print("  ");
+    } else if (operationMode == 1) {
+      // lcd.setCursor(1, 1);
+      lcd.print(' ');
+      lcd.write(0);
+      lcd.print(' ');
+    } else if (operationMode == 2) {
+      // lcd.setCursor(2, 1);
+      lcd.print("  ");
+      lcd.write(0);
+    }
+    for(int i = 1; i <= ZONES; i++) {
+      lcd.setCursor(i + 2, 1);
+      if (zoneState[i - 1]) {
+        lcd.write(0);
+      } else {
+        lcd.print(' ');
+      }
+    }
+    lcd.setCursor(ZONES + 3, 1);
+    if (rain()) {
+      lcd.write(0);
+    } else {
+      lcd.print(' ');
+    }
+    lcd.setCursor(ZONES + 4, 1);
+    if (tank()) {
+      lcd.write(0);
+    } else {
+      lcd.print(' ');
     }
   }
 }
