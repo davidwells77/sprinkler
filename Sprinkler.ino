@@ -77,6 +77,7 @@ void raining() {
    * If during the watering of a zone it starts raining
    * we stop watering
    */
+  Serial.println("Raining...");
   for(int i = 1; i <= ZONES; i++) {        // For every zone
     // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
     // zoneState[i - 1] = false;           // Update the zone status
@@ -91,6 +92,7 @@ void nowater() {
    * If during the watering of a zone the water tank runs
    * low on water we stop watering
    */
+  Serial.println("No water...");
   for(int i = 1; i <= ZONES; i++) {        // For every zone
     // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
     // zoneState[i - 1] = false;           // Update the zone status
