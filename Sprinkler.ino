@@ -77,13 +77,28 @@ void raining() {
    * If during the watering of a zone it starts raining
    * we stop watering
    */
+  bool flag = false;
+  unsigned long currentMillis = millis();
+  static unsigned long timer = 0;
+  
   Serial.println("Raining...");
-  for(int i = 1; i <= ZONES; i++) {        // For every zone
-    // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
-    // zoneState[i - 1] = false;           // Update the zone status
-    offZone(i - 1);
+  for(int i = 1; i <= ZONES; i++) {
+    if(zoneState[i - 1]) flag = true;
   }
-  if(operationMode == 2) operationMode = 1;
+  if(flag && currentMillis - timer >= 15) {
+    Serial.println("Doing something about it");
+    for(int i = 1; i <= ZONES; i++) {        // For every zone
+      // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
+      // zoneState[i - 1] = false;           // Update the zone status
+      offZone(i - 1);
+    }
+    if(operationMode == 2) operationMode = 1;
+    timer = currentMillis;
+  } else {
+    Serial.print("Nothing to be done: ");
+    if(flag) Serial.println("No active zones");
+    if(currentMillis - timer < 15) Serial.println("Bounce");
+  }
 }
 
 void nowater() {
@@ -92,13 +107,28 @@ void nowater() {
    * If during the watering of a zone the water tank runs
    * low on water we stop watering
    */
+  bool flag = false;
+  unsigned long currentMillis = millis();
+  static unsigned long timer = 0;
+
   Serial.println("No water...");
-  for(int i = 1; i <= ZONES; i++) {        // For every zone
-    // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
-    // zoneState[i - 1] = false;           // Update the zone status
-    offZone(i - 1);
+  for(int i = 1; i <= ZONES; i++) {
+    if(zoneState[i - 1]) flag = true;
   }
-  if(operationMode == 2) operationMode = 1;
+  if(flag && currentMillis - timer >= 15) {
+    Serial.println("Doing something about it");
+    for(int i = 1; i <= ZONES; i++) {        // For every zone
+      // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
+      // zoneState[i - 1] = false;           // Update the zone status
+      offZone(i - 1);
+    }
+    if(operationMode == 2) operationMode = 1;
+    timer = currentMillis;
+  } else {
+    Serial.print("Nothing to be done: ");
+    if(flag) Serial.println("No active zones");
+    if(currentMillis - timer < 15) Serial.println("Bounce");
+  }
 }
 
 void onZone1() {
