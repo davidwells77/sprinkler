@@ -84,7 +84,7 @@ void raining() {
   for(int i = 1; i <= ZONES; i++) {
     if(zoneState[i - 1]) flag = true;
   }
-  if(flag && currentMillis - timer >= 15) {
+  if(flag && currentMillis - timer >= DEBOUNCE) {
     for(int i = 1; i <= ZONES; i++) {        // For every zone
       // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
       // zoneState[i - 1] = false;           // Update the zone status
@@ -108,7 +108,7 @@ void nowater() {
   for(int i = 1; i <= ZONES; i++) {
     if(zoneState[i - 1]) flag = true;
   }
-  if(flag && currentMillis - timer >= 15) {
+  if(flag && currentMillis - timer >= DEBOUNCE) {
     for(int i = 1; i <= ZONES; i++) {        // For every zone
       // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
       // zoneState[i - 1] = false;           // Update the zone status
