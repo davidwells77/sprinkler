@@ -33,30 +33,6 @@ AlarmId eventId[dtNBR_ALARMS]; // ID's of the programed events
 
 LiquidCrystal_I2C lcd(0x3f, 16, 2); // Initialization of the LCD Screen
 
-void raining() {
-
-  /* Function called from an interrupt
-   * If during the watering of a zone it starts raining
-   * we stop watering
-   */
-  for(int i = 1; i <= ZONES; i++) {        // For every zone
-    digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
-    zoneState[i - 1] = false;           // Update the zone status
-  }
-}
-
-void nowater() {
-
-  /* Function called from an interrupt
-   * If during the watering of a zone the water tank runs
-   * low on water we stop watering
-   */
-  for(int i = 1; i <= ZONES; i++) {        // For every zone
-    digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
-    zoneState[i - 1] = false;           // Update the zone status
-  }
-}
-
 bool rain() {
 
   // Test the rain sensor and return True if raining
@@ -81,7 +57,7 @@ void onZone(int zone) {
 
   // Turn on a zone and update the status of the zone
   if (!(rain()) && !(tank())) {
-    digitalWrite(zonePins[zone], HIGH);
+    digitalWrite(zonePins[zone], LOW);
     zoneState[zone] = true;
   }
 }
@@ -90,9 +66,37 @@ void offZone(int zone) {
 
   // Turn off a zone and update the status of the zone
   if (zoneState[zone] = true) {
-    digitalWrite(zonePins[zone], LOW);
+    digitalWrite(zonePins[zone], HIGH);
     zoneState[zone] = false;
   }
+}
+
+void raining() {
+
+  /* Function called from an interrupt
+   * If during the watering of a zone it starts raining
+   * we stop watering
+   */
+  for(int i = 1; i <= ZONES; i++) {        // For every zone
+    // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
+    // zoneState[i - 1] = false;           // Update the zone status
+    offZone(i - 1);
+  }
+  if(operationMode == 2) operationMode = 1;
+}
+
+void nowater() {
+
+  /* Function called from an interrupt
+   * If during the watering of a zone the water tank runs
+   * low on water we stop watering
+   */
+  for(int i = 1; i <= ZONES; i++) {        // For every zone
+    // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
+    // zoneState[i - 1] = false;           // Update the zone status
+    offZone(i - 1);
+  }
+  if(operationMode == 2) operationMode = 1;
 }
 
 void onZone1() {
@@ -225,6 +229,8 @@ void displayStatus() {
       oldOperationMode = operationMode;
     }
     for(int i = 1; i <= ZONES; i++) {
+      // if(oldZoneState[i - 1] != zoneState[i - 1]) {
+      // }
       lcd.setCursor(i + 2, 1);
       if (zoneState[i - 1]) {
         lcd.write(1);
@@ -305,25 +311,39 @@ int keyPress() {
 
 void manualOperation() {
 
-  int keyPressed;
   int runZone = 1;
-
-  onZone(runZone);
-  onZone(ZONEC);
+  bool zoneRun = true;
+  unsigned long currentMillis = millis();
+  unsigned long timerManual = currentMillis;
+  //char texto[255];
+  
   while(operationMode == 2) {
+    currentMillis = millis();
+    //sprintf(texto, "%d %lu %lu %lu", runZone, currentMillis, timerManual, currentMillis - timerManual);
+    //Serial.println(texto);
     displayStatus();
-    keyPressed = keyPress();
-    if(keyPressed == btnSet) {
-      offZone(ZONEC);
-      offZone(runZone);
+    if(keyPress() == btnSet) {
+      if(zoneState[runZone]) {
+        offZone(ZONEC);
+        offZone(runZone);
+      }
+      timerManual = currentMillis;
       runZone++;
+      zoneRun = true;
       if(runZone == ZONES) {
+        for(int i = 1; i <= ZONES; i++) {
+          offZone(i - 1);
+        }
         operationMode++;
         if(operationMode == 3) operationMode = 0;
-      } else {
-        onZone(runZone);
-        onZone(ZONEC);
       }
+    }
+    if(!(zoneState[runZone]) && currentMillis - timerManual >= 5000) {
+      //Serial.println("Encendiendo");
+      //delay(1000);
+      onZone(runZone);
+      onZone(ZONEC);
+      zoneRun = false;
     }
   }
 }
@@ -336,7 +356,7 @@ void setup() {
   pinMode(TANKS, INPUT_PULLUP); // Configure the water tank sensor
   for(int i = 1; i <= ZONES; i++) {
     pinMode(zonePins[i - 1], OUTPUT); // Configure the zones
-    digitalWrite(zonePins[i - 1], LOW);
+    digitalWrite(zonePins[i - 1], HIGH);
     zoneState[i - 1] = false;
   }
   pinMode(LED_BUILTIN, OUTPUT); // Configure the builtin led
@@ -362,4 +382,3 @@ void loop() {
   if(operationMode == 2) manualOperation();
   Alarm.delay(0);
 }
-
