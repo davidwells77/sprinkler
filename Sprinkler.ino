@@ -81,12 +81,10 @@ void raining() {
   unsigned long currentMillis = millis();
   static unsigned long timer = 0;
   
-  Serial.println("Raining...");
   for(int i = 1; i <= ZONES; i++) {
     if(zoneState[i - 1]) flag = true;
   }
   if(flag && currentMillis - timer >= 15) {
-    Serial.println("Doing something about it");
     for(int i = 1; i <= ZONES; i++) {        // For every zone
       // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
       // zoneState[i - 1] = false;           // Update the zone status
@@ -94,10 +92,6 @@ void raining() {
     }
     if(operationMode == 2) operationMode = 1;
     timer = currentMillis;
-  } else {
-    Serial.print("Nothing to be done: ");
-    if(flag) Serial.println("No active zones");
-    if(currentMillis - timer < 15) Serial.println("Bounce");
   }
 }
 
@@ -111,12 +105,10 @@ void nowater() {
   unsigned long currentMillis = millis();
   static unsigned long timer = 0;
 
-  Serial.println("No water...");
   for(int i = 1; i <= ZONES; i++) {
     if(zoneState[i - 1]) flag = true;
   }
   if(flag && currentMillis - timer >= 15) {
-    Serial.println("Doing something about it");
     for(int i = 1; i <= ZONES; i++) {        // For every zone
       // digitalWrite(zonePins[i - 1], LOW); // Set zone LOW
       // zoneState[i - 1] = false;           // Update the zone status
@@ -124,10 +116,6 @@ void nowater() {
     }
     if(operationMode == 2) operationMode = 1;
     timer = currentMillis;
-  } else {
-    Serial.print("Nothing to be done: ");
-    if(flag) Serial.println("No active zones");
-    if(currentMillis - timer < 15) Serial.println("Bounce");
   }
 }
 
