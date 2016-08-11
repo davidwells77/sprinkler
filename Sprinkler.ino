@@ -387,8 +387,8 @@ void setup() {
   pinMode(RAINS, INPUT); // Configure the rain sensor
   pinMode(TANKS, INPUT_PULLUP); // Configure the water tank sensor
   for(int i = 1; i <= ZONES; i++) {
-    pinMode(zonePins[i - 1], OUTPUT); // Configure the zones
     digitalWrite(zonePins[i - 1], HIGH);
+    pinMode(zonePins[i - 1], OUTPUT); // Configure the zones
     zoneState[i - 1] = false;
   }
   pinMode(LED_BUILTIN, OUTPUT); // Configure the builtin led
