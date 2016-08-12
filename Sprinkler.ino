@@ -335,6 +335,7 @@ void manualOperation() {
   bool zoneRun = true;
   unsigned long currentMillis = millis();
   unsigned long timerManual = currentMillis;
+  bool flag = false;
   //char texto[255];
   
   while(operationMode == 2) {
@@ -342,6 +343,16 @@ void manualOperation() {
     //sprintf(texto, "%d %lu %lu %lu", runZone, currentMillis, timerManual, currentMillis - timerManual);
     //Serial.println(texto);
     displayStatus();
+    for(int i = 1; i <= ZONES; i++) {
+      if(zoneState[i - 1]) flag = true;
+    }
+    if(flag && (rain() || tank())) {
+      for(int i = 1; i <= ZONES; i++) {
+        offZone(i - 1);
+      }
+      operationMode = 1;
+      return;
+    }
     if(keyPress() == btnSet) {
       if(zoneState[runZone]) {
         offZone(ZONEC);
@@ -380,8 +391,8 @@ void setup() {
     zoneState[i - 1] = false;
   }
   pinMode(LED_BUILTIN, OUTPUT); // Configure the builtin led
-  attachInterrupt(digitalPinToInterrupt(RAINS), raining, RISING); // Create an interrupt for the rain sensor
-  attachInterrupt(digitalPinToInterrupt(TANKS), nowater, RISING); // Create an interrupt for the water tank sensor
+  //attachInterrupt(digitalPinToInterrupt(RAINS), raining, RISING); // Create an interrupt for the rain sensor
+  //attachInterrupt(digitalPinToInterrupt(TANKS), nowater, RISING); // Create an interrupt for the water tank sensor
   lcd.init(); // Initialize the LCD screen
   lcd.backlight(); // Turn on the LCD backlight
   lcd.createChar(0, arrowUp);
@@ -392,8 +403,18 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int keyPressed;
-  
+  bool flag = false;
+    
   displayStatus();
+  for(int i = 1; i <= ZONES; i++) {
+    if(zoneState[i - 1]) flag = true;
+  }
+  if(flag && (rain() || tank())) {
+    for(int i = 1; i <= ZONES; i++) {
+      offZone(i - 1);
+    }
+    return;
+  }
   keyPressed = keyPress();
   if(keyPressed == btnSet) {
     operationMode++;
